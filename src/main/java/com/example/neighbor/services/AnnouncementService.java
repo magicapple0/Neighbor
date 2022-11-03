@@ -1,5 +1,6 @@
-package com.example.neighbor.announcenemt;
+package com.example.neighbor.services;
 
+import com.example.neighbor.models.Announcement;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ public class AnnouncementService {
     public List<Announcement> announcements = new ArrayList<>();
 
     public AnnouncementService(){
-        announcements.add(new Announcement(1L));
+
     }
 
     public List<Announcement> getAllAnnouncements(){

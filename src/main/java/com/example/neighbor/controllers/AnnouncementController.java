@@ -1,7 +1,7 @@
-package com.example.neighbor.announcenemt;
+package com.example.neighbor.controllers;
 
-import com.example.neighbor.user.User;
-import com.example.neighbor.user.UserService;
+import com.example.neighbor.services.AnnouncementService;
+import com.example.neighbor.models.Announcement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
