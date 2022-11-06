@@ -4,6 +4,7 @@ import com.example.neighbor.models.Role;
 import com.example.neighbor.models.User;
 import com.example.neighbor.repositories.UserRepository;
 import jakarta.persistence.EntityExistsException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,20 +23,21 @@ public class UserService {
         repository.findAll().forEach(users::add);
         return users;
     }
-
+    @Transactional
     public User GetUser(long id) {
         return repository.findById(id);
     }
-
+    @Transactional
     public User GetUser(String login) {
         return repository.findByLogin(login);
     }
 
-    public void CreateUser(User user) {
+    @Transactional
+    public User CreateUser(User user) {
         if (repository.findByLogin(user.getLogin()) != null)
             throw new EntityExistsException("user exists");
         user.setRole(Role.USER);
-        repository.save(user);
+        return repository.save(user);
     }
 
 }

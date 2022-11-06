@@ -10,10 +10,10 @@ import java.util.Collection;
 public class UserDetailsImpl implements UserDetails {
 
     @Getter
-    private String password;
+    private final String password;
     @Getter
-    private String username;
-    private User user;
+    private final String username;
+    private final User user;
 
     private final boolean expired = false;
     private final boolean locked = false;

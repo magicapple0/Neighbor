@@ -1,5 +1,6 @@
 package com.example.neighbor.infrastructure.mappers;
 
+import com.example.neighbor.dto.UserAuthDTO;
 import com.example.neighbor.dto.UserPublicDTO;
 import com.example.neighbor.dto.UserRegisterDTO;
 import com.example.neighbor.models.User;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Component;
 @Component
 public interface UserMapper {
     UserPublicDTO userToUserPublicDto(User user);
+
     User userPublicDtoToUser(UserPublicDTO user);
+
     User userRegisterDtoToUser(UserRegisterDTO userRegisterDTO);
+
+    UserAuthDTO userToUserAuthDto(User user);
 }

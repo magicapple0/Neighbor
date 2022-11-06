@@ -1,7 +1,6 @@
 package com.example.neighbor.models;
 
 import com.example.neighbor.Address;
-import com.example.neighbor.Image;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -107,6 +107,16 @@
             <artifactId>spring-security-config</artifactId>
             <version>6.0.0-M6</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.1.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.common</groupId>
+            <artifactId>hibernate-commons-annotations</artifactId>
+            <version>6.0.4.Final</version>
+        </dependency>
 
 
     </dependencies>

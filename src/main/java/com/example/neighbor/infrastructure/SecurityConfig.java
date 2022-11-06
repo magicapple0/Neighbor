@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.converter.RsaKeyConverters;
@@ -20,6 +22,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.ByteArrayInputStream;
 import java.security.interfaces.RSAPrivateKey;
@@ -34,9 +38,9 @@ public class SecurityConfig {
     RSAPublicKey publicKey;
 
     public SecurityConfig(@Value("${jwt.public.key}")
-                          String publ,
+                                  String publ,
                           @Value("${jwt.private.key}")
-                          String priv) {
+                                  String priv) {
         privateKey = convertToPrivate(priv);
         publicKey = convertToPublic(publ);
     }
@@ -78,4 +82,5 @@ public class SecurityConfig {
     public RSAPublicKey convertToPublic(String from) {
         return RsaKeyConverters.x509().convert(new ByteArrayInputStream(from.getBytes()));
     }
+
 }

@@ -2,6 +2,7 @@ package com.example.neighbor.services;
 
 import com.example.neighbor.models.UserDetailsImpl;
 import com.example.neighbor.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +18,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         var user = repository.findByLogin(login);
         if (user == null)
