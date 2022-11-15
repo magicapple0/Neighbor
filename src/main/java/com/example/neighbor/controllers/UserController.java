@@ -9,6 +9,10 @@ import com.example.neighbor.models.Image;
 import com.example.neighbor.models.User;
 import com.example.neighbor.services.ImageService;
 import com.example.neighbor.services.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,9 +81,33 @@ public class UserController {
         return getToken(user);
     }
 
+    @PatchMapping(value = "{login}", consumes = "application/json-patch+json")
+    @ResponseBody
+    @ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")
+    public UserPublicDTO updateUserInfo(@PathVariable String login, @RequestBody JsonPatch patch) {
+        var userDetails = userDetailsService.loadUserByUsername(login);
+        var user = userService.GetUser(userDetails.getUsername());
+        if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
+        var userPatched = applyPatchToUser(user, patch);
+        if (userPatched == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to apply patch");
+        var newUser = userService.UpdateUser(userPatched);
+        return  mapper.userToUserPublicDto(newUser);
+
+    }
+
+    private static User applyPatchToUser(User user, JsonPatch patch) {
+        var mapper = new ObjectMapper();
+        var userJson = mapper.valueToTree(user);
+        try {
+            return mapper.treeToValue(patch.apply(userJson), User.class);
+        }
+        catch (JsonPatchException | JsonProcessingException e){
+            return null;
+        }
+    }
+
     @PostMapping(value = "registration")
     @ResponseBody
-
     public SecurityTokenDTO registration(@RequestPart("AccountRegistration") UserRegisterDTO userRegisterDTO, @RequestPart("avatar") MultipartFile file) {
         Image image;
         try {
@@ -104,8 +132,6 @@ public class UserController {
 
         var token = this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-        var tokenDTO = new SecurityTokenDTO(details.getUsername(), details.getAuthorities().stream().findFirst().get().getAuthority(), token, claims.getExpiresAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
-
-        return tokenDTO;
+        return new SecurityTokenDTO(details.getUsername(), details.getAuthorities().stream().findFirst().get().getAuthority(), token, claims.getExpiresAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
     }
 }

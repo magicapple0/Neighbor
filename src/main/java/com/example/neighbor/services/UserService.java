@@ -32,6 +32,11 @@ public class UserService {
         return repository.findByLogin(login);
     }
 
+    public User UpdateUser(User newUser)
+    {
+        return repository.save(newUser);
+    }
+
     @Transactional
     public User CreateUser(User user) {
         if (repository.findByLogin(user.getLogin()) != null)
