@@ -69,7 +69,7 @@ public class UserController {
 
     @GetMapping(value = "{login}")
     @ResponseBody
-    @ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")
+    //@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")
     public UserPublicDTO getPublicUserInfo(@PathVariable String login) {
         var user = userService.GetUser(login);
         if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
@@ -83,7 +83,7 @@ public class UserController {
 
     @PatchMapping(value = "{login}", consumes = "application/json-patch+json")
     @ResponseBody
-    @ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")
+    /*@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")*/
     public UserPublicDTO updateUserInfo(@PathVariable String login, @RequestBody JsonPatch patch) {
         var userDetails = userDetailsService.loadUserByUsername(login);
         var user = userService.GetUser(userDetails.getUsername());
