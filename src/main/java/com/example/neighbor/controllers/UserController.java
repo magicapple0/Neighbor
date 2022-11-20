@@ -9,40 +9,28 @@ import com.example.neighbor.models.Image;
 import com.example.neighbor.models.User;
 import com.example.neighbor.services.ImageService;
 import com.example.neighbor.services.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/accounts")
-@CrossOrigin(origins = "https://localhost:5002")
 public class UserController {
     private final UserService userService;
     private final UserMapper mapper;
 
-    private final JwtEncoder encoder;
-
-    private final UserDetailsService userDetailsService;
     private final ImageService imageService;
     private final Logger logger;
 
@@ -54,8 +42,6 @@ public class UserController {
                           ImageService imageService) {
         this.userService = userService;
         this.mapper = mapper;
-        this.encoder = encoder;
-        this.userDetailsService = userDetailsService;
         this.imageService = imageService;
         this.logger = LoggerFactory.getLogger(UserController.class);
     }
@@ -71,40 +57,28 @@ public class UserController {
     @ResponseBody
     //@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")
     public UserPublicDTO getPublicUserInfo(@PathVariable String login) {
-        var user = userService.GetUser(login);
+        var user = userService.getUser(login);
         if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
         return mapper.userToUserPublicDto(user);
     }
 
     @PostMapping(value = "login", consumes = "application/json")
     public SecurityTokenDTO login(@RequestBody UserAuthDTO user) {
-        return getToken(user);
+        return userService.getToken(user);
     }
 
     @PatchMapping(value = "{login}", consumes = "application/json-patch+json")
     @ResponseBody
     /*@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "user not found")*/
-    public UserPublicDTO updateUserInfo(@PathVariable String login, @RequestBody JsonPatch patch) {
-        var userDetails = userDetailsService.loadUserByUsername(login);
-        var user = userService.GetUser(userDetails.getUsername());
+    public UserPublicDTO updateUserInfo(Authentication auth, @RequestBody JsonPatch patch) {
+        var user = userService.getUser(auth.getName());
         if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
-        var userPatched = applyPatchToUser(user, patch);
+        var userPatched = userService.applyPatchToUser(user, patch);
         if (userPatched == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to apply patch");
-        var newUser = userService.UpdateUser(userPatched);
-        return  mapper.userToUserPublicDto(newUser);
-
+        var newUser = userService.updateUser(userPatched);
+        return mapper.userToUserPublicDto(newUser);
     }
 
-    private static User applyPatchToUser(User user, JsonPatch patch) {
-        var mapper = new ObjectMapper();
-        var userJson = mapper.valueToTree(user);
-        try {
-            return mapper.treeToValue(patch.apply(userJson), User.class);
-        }
-        catch (JsonPatchException | JsonProcessingException e){
-            return null;
-        }
-    }
 
     @PostMapping(value = "registration")
     @ResponseBody
@@ -119,19 +93,14 @@ public class UserController {
 
         var user = mapper.userRegisterDtoToUser(userRegisterDTO);
         user.setAvatar(image);
-        user = userService.CreateUser(user);
-        return getToken(mapper.userToUserAuthDto(user));
+        user = userService.createUser(user);
+        return userService.getToken(mapper.userToUserAuthDto(user));
     }
 
-    SecurityTokenDTO getToken(UserAuthDTO user) {
-        var details = userDetailsService.loadUserByUsername(user.getLogin());
-        var now = Instant.now();
-        var expiry = 36000L;
-        String scope = details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
-        JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(details.getUsername()).claim("scope", scope).build();
-
-        var token = this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
-        return new SecurityTokenDTO(details.getUsername(), details.getAuthorities().stream().findFirst().get().getAuthority(), token, claims.getExpiresAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
+    @GetMapping(value = "myname")
+    public String getMyName(Authentication auth) {
+        return auth.getName();
     }
+
+
 }
