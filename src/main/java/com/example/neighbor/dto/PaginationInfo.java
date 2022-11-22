@@ -10,9 +10,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaginationInfo<TItems> {
-    public int Page;
-    public int PageSize;
-    public int ItemsCount;
-    public int PageCount;
-    public List<TItems> Items;
+    private int page;
+    private int pageSize;
+    private int itemsCount;
+    private int pageCount;
+    private List<TItems> items;
 }

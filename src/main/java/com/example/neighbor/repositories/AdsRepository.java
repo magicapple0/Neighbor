@@ -1,9 +1,8 @@
 package com.example.neighbor.repositories;
 
 import com.example.neighbor.models.Ad;
-import com.example.neighbor.models.User;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AdsRepository extends CrudRepository<Ad, Long> {
+public interface AdsRepository extends JpaRepository<Ad, Long> {
     Ad findById(long Id);
 }

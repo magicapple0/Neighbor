@@ -2,6 +2,7 @@ package com.example.neighbor.controllers;
 
 import com.example.neighbor.dto.AdDTO;
 import com.example.neighbor.dto.CreateAdDTO;
+import com.example.neighbor.dto.PaginationInfo;
 import com.example.neighbor.infrastructure.mappers.AdMapper;
 import com.example.neighbor.models.Image;
 import com.example.neighbor.services.AdsService;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/ads")
@@ -40,6 +42,15 @@ public class AdsController {
     @ResponseBody
     public AdDTO get(@PathVariable long id){
         return adMapper.AdToAdDTO(adsService.getById(id));
+    }
+
+    @GetMapping(value = "get")
+    @ResponseBody
+    public PaginationInfo<AdDTO> getPopular(@RequestParam int page, @RequestParam int pageSize) {
+        var ads = adsService.getAds(page, pageSize);
+        var dtos = new ArrayList<AdDTO>();
+        for (var ad:ads) dtos.add(adMapper.AdToAdDTO(ad));
+        return new PaginationInfo<AdDTO>(page, pageSize, dtos.size(), 0, dtos);
     }
 
     @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
