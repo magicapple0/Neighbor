@@ -52,6 +52,7 @@ public class UserService {
         return repository.findByLogin(login);
     }
 
+    @Transactional
     public User updateUser(User newUser) {
         return repository.save(newUser);
     }
@@ -64,6 +65,7 @@ public class UserService {
         return repository.save(user);
     }
 
+    @Transactional
     public User applyPatchToUser(User user, JsonPatch patch) {
         var mapper = new ObjectMapper();
         var userJson = mapper.valueToTree(user);
@@ -74,10 +76,11 @@ public class UserService {
         }
     }
 
+    @Transactional
     public SecurityTokenDTO getToken(UserAuthDTO user) {
         var details = userDetailsService.loadUserByUsername(user.getLogin());
         var now = Instant.now();
-        var expiry = 50L;
+        var expiry = 5000L;
         String scope = details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
         JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(details.getUsername()).claim("scope", scope).build();
 
