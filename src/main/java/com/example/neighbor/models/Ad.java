@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,9 +19,10 @@ public class Ad {
     @ManyToOne
     @JoinColumn
     private User owner;
+
     @ManyToMany
     @JoinColumn
-    private Image[] images;
+    private List<Image> images;
     private int price;
     private String title;
     private String description;

@@ -12,11 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdDTO {
-    private long id;
-    private String ownerName;
-    private long[] imagesIds;
+    private String id;
     private int price;
+    private String ownerName;
     private String title;
     private String description;
+    private String[] imagesIds;
     private String category;
 }

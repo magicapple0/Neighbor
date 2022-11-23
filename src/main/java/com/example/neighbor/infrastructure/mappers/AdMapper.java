@@ -16,15 +16,15 @@ public abstract class AdMapper {
     public AdDTO AdToAdDTO(Ad ad)
     {
         var imgs = ad.getImages();
-        var ids = new long[imgs.length];
-        for (var i = 0; i < imgs.length; i++)
-            ids[i] = imgs[i].getId();
-        return new AdDTO(ad.getId(),
-                ad.getOwner().getName(),
-                ids,
+        var ids = new String[imgs.size()];
+        for (var i = 0; i < imgs.size(); i++)
+            ids[i] = String.valueOf(imgs.get(i).getId());
+        return new AdDTO(String.valueOf(ad.getId()),
                 ad.getPrice(),
+                ad.getOwner().getName(),
                 ad.getTitle(),
                 ad.getDescription(),
+                ids,
                 ad.getCategory());
     }
     public abstract Ad CreateAdDTOToAd(CreateAdDTO ad);
