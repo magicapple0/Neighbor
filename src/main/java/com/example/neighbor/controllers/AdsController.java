@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,10 @@ public class AdsController {
     private final UserService userService;
 
     @Autowired
-    public AdsController(AdService announcementService, AdMapper adMapper, ImageService imageService, UserService userService) {
+    public AdsController(AdService announcementService,
+                         AdMapper adMapper,
+                         ImageService imageService,
+                         UserService userService) {
         this.adService = announcementService;
         this.adMapper = adMapper;
         this.imageService = imageService;
@@ -39,7 +41,7 @@ public class AdsController {
 
     @GetMapping(value = "/getbyid/{id}")
     @ResponseBody
-    public AdDTO get(@PathVariable long id){
+    public AdDTO get(@PathVariable long id) {
         return adMapper.AdToAdDTO(adService.getById(id));
     }
 
@@ -48,8 +50,8 @@ public class AdsController {
     public PaginationInfo<AdDTO> getPopular(@RequestParam int page, @RequestParam int pageSize) {
         var ads = adService.getAds(page - 1, pageSize);
         var dtos = new ArrayList<AdDTO>();
-        for (var ad:ads) dtos.add(adMapper.AdToAdDTO(ad));
-        return new PaginationInfo<AdDTO>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
+        for (var ad : ads) dtos.add(adMapper.AdToAdDTO(ad));
+        return new PaginationInfo<>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
     }
 
     @GetMapping(value = "getUserAds/{login}")
@@ -58,8 +60,8 @@ public class AdsController {
         var user = userService.getUser(login);
         var ads = adService.getAds(user.getId(), page - 1, pageSize);
         var dtos = new ArrayList<AdDTO>();
-        for (var ad:ads) dtos.add(adMapper.AdToAdDTO(ad));
-        return new PaginationInfo<AdDTO>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
+        for (var ad : ads) dtos.add(adMapper.AdToAdDTO(ad));
+        return new PaginationInfo<>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
     }
 
     @DeleteMapping(value = "{id}/delete")
@@ -72,19 +74,14 @@ public class AdsController {
         adService.remove(ad);
     }
 
-    @PostMapping(value = "/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(value = "/add", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseBody
-    public AdDTO add(Authentication auth, @RequestPart("Ad") CreateAdDTO createAdDTO, @RequestPart("Image") MultipartFile file){
+    public AdDTO add(Authentication auth,
+                     @RequestPart("Ad") CreateAdDTO createAdDTO,
+                     @RequestPart("images") List<MultipartFile> filesList) {
         var ad = adMapper.CreateAdDTOToAd(createAdDTO);
-        byte[] bytes;
-        try {
-            bytes = file.getBytes();
-        }
-        catch (IOException ignored) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "incorrect data");
-        }
-        var image = imageService.createImage(bytes);
-        ad.setImages(List.of(image));
+        var images = imageService.createImagesFromMultipartFile(filesList);
+        ad.setImages(images);
         ad.setOwner(userService.getUser(auth.getName()));
         var repoAd = adService.create(ad);
         return adMapper.AdToAdDTO(repoAd);

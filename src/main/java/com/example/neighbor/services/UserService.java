@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import jakarta.persistence.EntityExistsException;
-import jakarta.transaction.Transactional;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -19,6 +18,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,9 @@ public class UserService {
     private final JwtEncoder encoder;
     private final UserDetailsService userDetailsService;
 
-    public UserService(UserRepository repository, JwtEncoder encoder, UserDetailsService userDetailsService) {
+    public UserService(UserRepository repository,
+                       JwtEncoder encoder,
+                       UserDetailsService userDetailsService) {
         this.repository = repository;
         this.encoder = encoder;
         this.userDetailsService = userDetailsService;
@@ -42,22 +44,18 @@ public class UserService {
         return users;
     }
 
-    @Transactional
     public User getUser(long id) {
         return repository.findById(id);
     }
 
-    @Transactional
     public User getUser(String login) {
         return repository.findByLogin(login);
     }
 
-    @Transactional
     public User updateUser(User newUser) {
         return repository.save(newUser);
     }
 
-    @Transactional
     public User createUser(User user) {
         if (repository.findByLogin(user.getLogin()) != null)
             throw new EntityExistsException("user exists");
@@ -65,7 +63,6 @@ public class UserService {
         return repository.save(user);
     }
 
-    @Transactional
     public User applyPatchToUser(User user, JsonPatch patch) {
         var mapper = new ObjectMapper();
         var userJson = mapper.valueToTree(user);
@@ -76,17 +73,25 @@ public class UserService {
         }
     }
 
-    @Transactional
     public SecurityTokenDTO getToken(UserAuthDTO user) {
         var details = userDetailsService.loadUserByUsername(user.getLogin());
         var now = Instant.now();
         var expiry = 5000L;
-        String scope = details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
-        JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(details.getUsername()).claim("scope", scope).build();
+        String scope = details.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+        var expiredAt = now.plusSeconds(expiry);
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(expiredAt)
+                .subject(details.getUsername())
+                .claim("scope", scope).build();
 
         var token = this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
-        return new SecurityTokenDTO(details.getUsername(), details.getAuthorities().stream().findFirst().get().getAuthority(), token, claims.getExpiresAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        var localExpiredAt = LocalDateTime.ofInstant(expiredAt, ZoneId.systemDefault());
+        return new SecurityTokenDTO(details.getUsername(), scope, token, localExpiredAt);
     }
 
 }
