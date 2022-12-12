@@ -1,11 +1,9 @@
 package com.example.neighbor.controllers;
 
-import com.example.neighbor.dto.SecurityTokenDTO;
-import com.example.neighbor.dto.UserAuthDTO;
-import com.example.neighbor.dto.UserPublicDTO;
-import com.example.neighbor.dto.UserRegisterDTO;
+import com.example.neighbor.dto.*;
 import com.example.neighbor.infrastructure.mappers.UserMapper;
 import com.example.neighbor.models.Image;
+import com.example.neighbor.models.Role;
 import com.example.neighbor.models.User;
 import com.example.neighbor.services.ImageService;
 import com.example.neighbor.services.UserService;
@@ -95,6 +93,16 @@ public class UserController {
         user.setAvatar(image);
         user = userService.createUser(user);
         return userService.getToken(mapper.userToUserAuthDto(user));
+    }
+
+    @GetMapping("{login}/full")
+    public UserFullDTO GetFullUserInfo(@PathVariable String login, Authentication auth) {
+        var role = auth.getAuthorities().isEmpty() ? "" :
+                auth.getAuthorities().stream().findFirst().get().getAuthority();
+        if (!(auth.getName().equals(login) || role.equals(Role.ADMINISTRATOR.name())))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        var user = userService.getUser(login);
+        return mapper.userToUserFullDto(user);
     }
 
     @GetMapping(value = "myname")

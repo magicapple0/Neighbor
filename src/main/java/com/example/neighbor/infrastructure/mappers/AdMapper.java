@@ -21,7 +21,7 @@ public abstract class AdMapper {
             ids[i] = String.valueOf(imgs.get(i).getId());
         return new AdDTO(String.valueOf(ad.getId()),
                 ad.getPrice(),
-                ad.getOwner().getName(),
+                ad.getOwner().getLogin(),
                 ad.getTitle(),
                 ad.getDescription(),
                 ids,
