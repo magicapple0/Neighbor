@@ -2,37 +2,41 @@ package com.example.neighbor.services;
 
 import com.example.neighbor.models.Ad;
 import com.example.neighbor.repositories.AdRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class AdService {
     private final AdRepository repository;
+    private final RatingCalculator ratingCalculator;
 
-    public AdService(AdRepository repository) {
+    public AdService(AdRepository repository, RatingCalculator ratingCalculator) {
         this.repository = repository;
+        this.ratingCalculator = ratingCalculator;
     }
 
     public Page<Ad> getAds(int page, int pageSize) {
-        var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
+        var pagination = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("rating")));
         return repository.findAll(pagination);
     }
 
     public Page<Ad> getAds(long ownerId, int page, int pageSize) {
-        var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
+        var pagination = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("rating")));
         return repository.findAllByOwnerId(ownerId, pagination);
     }
 
     public Page<Ad> getAds(String category, int page, int pageSize) {
-        var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
+        var pagination = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("rating")));
         return repository.findAllByCategory(category, pagination);
     }
 
     @Transactional
     public Ad create(Ad ad) {
+        ad.setRating(ratingCalculator.GetRating(ad));
         return repository.save(ad);
     }
 
@@ -41,7 +45,11 @@ public class AdService {
         repository.delete(ad);
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Ad getById(long id) {
-        return repository.findById(id);
+        var ad = repository.findById(id);
+        ad.setRating(ad.getRating() + 1);
+        repository.save(ad);
+        return ad;
     }
 }

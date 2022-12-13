@@ -27,4 +27,5 @@ public class Ad {
     private String title;
     private String description;
     private String category;
+    private int rating;
 }
