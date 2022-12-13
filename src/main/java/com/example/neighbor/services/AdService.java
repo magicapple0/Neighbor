@@ -16,18 +16,19 @@ public class AdService {
         this.repository = repository;
     }
 
-    @Transactional
     public Page<Ad> getAds(int page, int pageSize) {
         var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
-        var pageObj = repository.findAll(pagination);
-        return pageObj;
+        return repository.findAll(pagination);
     }
 
-    @Transactional
     public Page<Ad> getAds(long ownerId, int page, int pageSize) {
         var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
-        var pageObj = repository.findAllByOwnerId(ownerId, pagination);
-        return pageObj;
+        return repository.findAllByOwnerId(ownerId, pagination);
+    }
+
+    public Page<Ad> getAds(String category, int page, int pageSize) {
+        var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
+        return repository.findAllByCategory(category, pagination);
     }
 
     @Transactional
@@ -40,7 +41,6 @@ public class AdService {
         repository.delete(ad);
     }
 
-    @Transactional
     public Ad getById(long id) {
         return repository.findById(id);
     }

@@ -11,5 +11,8 @@ import org.springframework.stereotype.Repository;
 @RestResource(exported = false)
 public interface AdRepository extends JpaRepository<Ad, Long> {
     Ad findById(long Id);
+
     Page<Ad> findAllByOwnerId(long id, Pageable pageable);
+
+    Page<Ad> findAllByCategory(String category, Pageable pageable);
 }
