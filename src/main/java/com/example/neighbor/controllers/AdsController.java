@@ -57,12 +57,21 @@ public class AdsController {
     @GetMapping(value = "categories")
     @ResponseBody
     public PaginationInfo<AdDTO> getWithCategory(@RequestParam String category,
-                                            @RequestParam int page,
-                                            @RequestParam int pageSize) {
+                                                 @RequestParam int page,
+                                                 @RequestParam int pageSize) {
         var ads = adService.getAds(category, page - 1, pageSize);
         var dtos = ads.map(adMapper::AdToAdDTO).toList();
         return new PaginationInfo<>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
+    }
 
+    @GetMapping(value = "search")
+    @ResponseBody
+    public PaginationInfo<AdDTO> searchAds(@RequestParam String query,
+                                           @RequestParam int page,
+                                           @RequestParam int pageSize) {
+        var ads = adService.findAds(query, page - 1, pageSize);
+        var dtos = ads.map(adMapper::AdToAdDTO).toList();
+        return new PaginationInfo<>(page, pageSize, dtos.size(), ads.getTotalPages(), dtos);
     }
 
     @GetMapping(value = "getUserAds/{login}")

@@ -34,6 +34,11 @@ public class AdService {
         return repository.findAllByCategory(category, pagination);
     }
 
+    public Page<Ad> findAds(String query, int page, int pageSize) {
+        var pagination = PageRequest.of(page, pageSize, Sort.unsorted());
+        return repository.findByQuery(query, pagination);
+    }
+
     @Transactional
     public Ad create(Ad ad) {
         ad.setRating(ratingCalculator.GetRating(ad));
