@@ -5,16 +5,14 @@ import com.example.neighbor.dto.CreateAdDTO;
 import com.example.neighbor.models.Ad;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 @Component
-public abstract class AdMapper {
+public interface AdMapper {
 
-    public AdDTO AdToAdDTO(Ad ad)
-    {
+    default AdDTO AdToAdDTO(Ad ad) {
         var imgs = ad.getImages();
         var ids = new String[imgs.size()];
         for (var i = 0; i < imgs.size(); i++)
@@ -27,5 +25,8 @@ public abstract class AdMapper {
                 ids,
                 ad.getCategory());
     }
-    public abstract Ad CreateAdDTOToAd(CreateAdDTO ad);
+
+    Ad AdDTOToAd(AdDTO adDto);
+
+    Ad CreateAdDTOToAd(CreateAdDTO ad);
 }

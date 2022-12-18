@@ -57,4 +57,8 @@ public class AdService {
         repository.save(ad);
         return ad;
     }
+
+    public Ad update(Ad ad) {
+        return repository.save(ad);
+    }
 }

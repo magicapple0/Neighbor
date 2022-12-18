@@ -106,4 +106,23 @@ public class AdsController {
         var repoAd = adService.create(ad);
         return adMapper.AdToAdDTO(repoAd);
     }
+
+    @PatchMapping(value = "update")
+    @ResponseBody
+    public AdDTO Update(Authentication auth,
+                        @RequestPart("Ad") AdDTO adDTO,
+                        @RequestPart("images") List<MultipartFile> filesList) {
+        var user = userService.getUser(auth.getName());
+        var ad = adService.getById(Long.parseLong(adDTO.getId()));
+        if (ad.getOwner().getId() != user.getId())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not your business");
+        var rating = ad.getRating();
+        ad = adMapper.AdDTOToAd(adDTO);
+        ad.setRating(rating);
+        var images = imageService.createImagesFromMultipartFile(filesList);
+        ad.setImages(images);
+        ad.setOwner(userService.getUser(auth.getName()));
+        var repoAd = adService.update(ad);
+        return adMapper.AdToAdDTO(repoAd);
+    }
 }

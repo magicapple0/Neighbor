@@ -10,12 +10,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import jakarta.persistence.EntityExistsException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -44,10 +46,6 @@ public class UserService {
         return users;
     }
 
-    public User getUser(long id) {
-        return repository.findById(id);
-    }
-
     public User getUser(String login) {
         return repository.findByLogin(login);
     }
@@ -73,8 +71,11 @@ public class UserService {
         }
     }
 
-    public SecurityTokenDTO getToken(UserAuthDTO user) {
-        var details = userDetailsService.loadUserByUsername(user.getLogin());
+    public SecurityTokenDTO getToken(UserAuthDTO authDTO) {
+        var user = repository.findByLogin(authDTO.getLogin());
+        if (!user.getPassword().equals(authDTO.getPassword()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"invalid password");
+        var details = userDetailsService.loadUserByUsername(authDTO.getLogin());
         var now = Instant.now();
         var expiry = 5000L;
         String scope = details.getAuthorities()
